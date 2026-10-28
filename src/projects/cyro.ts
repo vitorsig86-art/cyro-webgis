@@ -26,9 +26,7 @@ const orto: ProjectConfig["layers"][number] = {
   },
 };
 
-// Metashape. Altitudes de origem ortométricas (SIRGAS 2000, MAPGEO): o modelo
-// fica abaixo do World Terrain pela ondulação geoidal N. heightOffsetMeters
-// = +N do MAPGEO no local; não ajustar no olho.
+// Metashape. Altura: ver comentário de heightOffsetMeters.
 // Mesmo token do Bing, por isso VITE_CESIUM_ION_TOKEN.
 const modelo: ProjectConfig["layers"][number] = {
   id: "modelo",
@@ -53,7 +51,8 @@ const modelo: ProjectConfig["layers"][number] = {
         [-44.8608793, -21.9249971],
       ],
     },
-    // +N, ondulação geoidal MAPGEO2015 em -44.87, -21.92
+    // 0: modelo assenta no World Terrain sem offset. Referencial vertical do asset a
+    // confirmar (exportação do Metashape ou configuração de upload no ion); não é o N do MAPGEO.
     heightOffsetMeters: 0,
     terrainCutout: false,
   },
