@@ -28,7 +28,7 @@ const orto: ProjectConfig["layers"][number] = {
 
 // Metashape. Altitudes de origem ortométricas (SIRGAS 2000, MAPGEO): o modelo
 // fica abaixo do World Terrain pela ondulação geoidal N. heightOffsetMeters
-// final = +N do MAPGEO no local (aguardando valor); não ajustar no olho.
+// = +N do MAPGEO no local; não ajustar no olho.
 // Mesmo token do Bing, por isso VITE_CESIUM_ION_TOKEN.
 const modelo: ProjectConfig["layers"][number] = {
   id: "modelo",
@@ -36,7 +36,27 @@ const modelo: ProjectConfig["layers"][number] = {
   description: "",
   kind: "3d-tiles",
   defaultVisible: false,
-  source: { format: "3d-tiles", source: "ion", assetId: 5140405, tokenEnv: "VITE_CESIUM_ION_TOKEN" },
+  source: {
+    format: "3d-tiles",
+    source: "ion",
+    assetId: 5140405,
+    tokenEnv: "VITE_CESIUM_ION_TOKEN",
+    clipping: {
+      enabled: true,
+      inverse: true,
+      positions: [
+        [-44.8583192, -21.9219800],
+        [-44.8670679, -21.9166591],
+        [-44.8711443, -21.9232125],
+        [-44.8708877, -21.9245612],
+        [-44.8641478, -21.9285609],
+        [-44.8608793, -21.9249971],
+      ],
+    },
+    // +N, ondulação geoidal MAPGEO2015 em -44.87, -21.92
+    heightOffsetMeters: 0,
+    terrainCutout: false,
+  },
 };
 
 export const project: ProjectConfig = {
@@ -57,6 +77,5 @@ export const project: ProjectConfig = {
   scenes: [],
   diagnostic: { steps: [] },
   // Ferramentas só aparecem em npm run dev; desligue cameraCapture ao finalizar.
-  // modelAlignment ligado só para medir a diferença do modelo; desligar depois.
-  developmentTools: { modelAlignment: true, cropAuthoring: true, cameraCapture: false },
+  developmentTools: { modelAlignment: false, cropAuthoring: false, cameraCapture: false },
 };
