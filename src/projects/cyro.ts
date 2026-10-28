@@ -57,6 +57,86 @@ const declividade = derivado("declividade", "Declividade", "slope", "decli", rel
 // O tipo não tem "aspect"; "solar-orientation" é o kind do template para vertentes.
 const aspecto = derivado("aspecto", "Orientação de Vertentes", "solar-orientation", "aspect", [-45, -21.9430456, -44.6484374, -21.6165793], 10, 19);
 
+// Vetores (GeoJSON CRS84 no R2). A versão atual no R2 ainda não tem STRAHLER,
+// comprimento_m, cota_m nem mestra: as feições usam o estilo base (stroke/
+// strokeWidth) e os popups mostram só o título até o arquivo certo subir.
+const curvas: Layer = {
+  id: "curvas",
+  name: "Curvas de Nível (3 m)",
+  description: "",
+  kind: "contours",
+  defaultVisible: false,
+  source: {
+    format: "geojson",
+    url: `${R2}/geojson/curvas_3m.geojson`,
+    autoZoom: false,
+    popup: { title: "Curva de nível", fields: [{ property: "cota_m", label: "Cota", suffix: " m", format: "integer" }] },
+    style: {
+      stroke: "#000000",
+      strokeWidth: 1,
+      clampToGround: true,
+      zIndex: 5,
+      classification: {
+        property: "mestra",
+        classes: {
+          false: { stroke: "#000000", strokeWidth: 1 },
+          true: { stroke: "#000000", strokeWidth: 2 },
+        },
+      },
+    },
+  },
+};
+
+// Estilo do Global Mapper por STRAHLER; sem a symbology simulated-drainage-strahler.
+const drenagem: Layer = {
+  id: "drenagem",
+  name: "Drenagem",
+  description: "",
+  kind: "drainage",
+  defaultVisible: false,
+  source: {
+    format: "geojson",
+    url: `${R2}/geojson/linhas_drenagem.geojson`,
+    autoZoom: false,
+    popup: {
+      title: "Drenagem",
+      fields: [
+        { property: "STRAHLER", label: "Ordem de Strahler", format: "integer" },
+        { property: "comprimento_m", label: "Comprimento", decimals: 0, suffix: " m" },
+      ],
+    },
+    style: {
+      stroke: "#00E5FF",
+      strokeWidth: 1,
+      clampToGround: true,
+      zIndex: 10,
+      classification: {
+        property: "STRAHLER",
+        classes: {
+          1: { stroke: "#00E5FF", strokeWidth: 1, zIndex: 10 },
+          2: { stroke: "#14B8F0", strokeWidth: 1.6, zIndex: 11 },
+          3: { stroke: "#1E88E5", strokeWidth: 2.4, zIndex: 12 },
+          4: { stroke: "#1546D8", strokeWidth: 3.4, zIndex: 13 },
+        },
+      },
+    },
+  },
+};
+
+const perimetro: Layer = {
+  id: "perimetro",
+  name: "Perímetro da Área",
+  description: "",
+  kind: "property-boundary",
+  defaultVisible: true,
+  source: {
+    format: "geojson",
+    url: `${R2}/geojson/area_perimetro.geojson`,
+    autoZoom: false,
+    style: { stroke: "#FFD400", strokeWidth: 3, fillOpacity: 0, clampToGround: true, zIndex: 20 },
+  },
+};
+
 // Metashape. Altura: ver comentário de heightOffsetMeters.
 // Mesmo token do Bing, por isso VITE_CESIUM_ION_TOKEN.
 const modelo: ProjectConfig["layers"][number] = {
@@ -103,7 +183,7 @@ export const project: ProjectConfig = {
   // Capture a vista final (cameraCapture). Ângulos em graus; altura em metros sobre o elipsoide.
   initialCamera: { longitude: -44.8698617, latitude: -21.9182845, height: 1694.0, heading: 125.73, pitch: -46.46, roll: 0.00 },
   // Ordem = empilhamento: o último item fica por cima.
-  layers: [basemap, orto, mdt, mds, declividade, aspecto, modelo],
+  layers: [basemap, orto, mdt, mds, declividade, aspecto, curvas, drenagem, perimetro, modelo],
   scenes: [],
   diagnostic: { steps: [] },
   // Ferramentas só aparecem em npm run dev; desligue cameraCapture ao finalizar.
