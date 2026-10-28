@@ -58,5 +58,5 @@ export const project: ProjectConfig = {
   diagnostic: { steps: [] },
   // Ferramentas só aparecem em npm run dev; desligue cameraCapture ao finalizar.
   // modelAlignment ligado só para medir a diferença do modelo; desligar depois.
-  developmentTools: { modelAlignment: true, cropAuthoring: false, cameraCapture: true },
+  developmentTools: { modelAlignment: true, cropAuthoring: true, cameraCapture: false },
 };
