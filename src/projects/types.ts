@@ -122,6 +122,20 @@ export interface CameraConfig {
   roll: number;
 }
 
+export type WorkspaceSectionId = "basemap" | "raster" | "vector" | "model" | "macro";
+
+// Layer panel presentation. Every option keeps the current behavior when omitted.
+export interface PanelConfig {
+  // Show the "Buscar camada" field. Default true.
+  showLayerSearch?: boolean;
+  // Section order. Sections left out follow in the default order
+  // (basemap, raster, vector, model, macro), so none disappears.
+  sectionOrder?: WorkspaceSectionId[];
+  // Sections that start open in addition to those with an active layer.
+  // Only the section opens; no layer is turned on.
+  expandedSections?: WorkspaceSectionId[];
+}
+
 export interface ProjectConfig {
   id: string;
   name: string;
@@ -135,6 +149,7 @@ export interface ProjectConfig {
   scenes?: QuickScene[];
   diagnostic?: { steps: DiagnosticStep[] };
   temporalComparison?: TemporalComparisonSelection;
+  panel?: PanelConfig;
   developmentTools?: { modelAlignment?: boolean; cropAuthoring?: boolean; cameraCapture?: boolean };
 }
 

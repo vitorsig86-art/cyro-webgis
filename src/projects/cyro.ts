@@ -186,6 +186,8 @@ export const project: ProjectConfig = {
   layers: [basemap, orto, mdt, mds, declividade, aspecto, curvas, drenagem, perimetro, modelo],
   scenes: [],
   diagnostic: { steps: [] },
+  // Modelo 3D logo abaixo do Mapa base e já aberto (o modelo continua desligado).
+  panel: { showLayerSearch: false, sectionOrder: ["basemap", "model", "raster", "vector"], expandedSections: ["model"] },
   // Ferramentas só aparecem em npm run dev; desligue cameraCapture ao finalizar.
   developmentTools: { modelAlignment: false, cropAuthoring: false, cameraCapture: false },
 };

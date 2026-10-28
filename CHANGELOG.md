@@ -2,6 +2,15 @@
 
 Mudanças do Cardeal Map template, da mais recente para a mais antiga. Projetos derivados registram suas próprias mudanças a partir do commit de origem anotado no AGENTS.md do clone.
 
+## Cyro (projeto derivado, a partir do template d695a4d) — 2026-10-28
+
+### Adicionado
+- Opções de painel em `ProjectConfig.panel` (código genérico em `src/projects/types.ts`, `src/components/LayerPanel.tsx` e testes em `scripts/check-workspace.cjs`); sem `panel`, o comportamento é o anterior:
+  - `showLayerSearch` (padrão `true`): mostra ou oculta "Buscar camada".
+  - `sectionOrder`: ordem das seções; as não listadas seguem na ordem padrão (Mapa base, Rasters, Vetores, Modelo 3D, Análise Macro).
+  - `expandedSections`: seções que abrem ao carregar, além das que têm camada ativa; só abre a seção, não liga camadas.
+- **Pendente: portar essas três opções para o template, em mudança separada.**
+
 ## [Não lançado] — 2026-10-28
 
 ### Adicionado

@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from "react";
-import type { LayerStatus, ProjectConfig, ProjectLayerConfig, QuickScene } from "../projects/types";
+import type { LayerStatus, ProjectConfig, ProjectLayerConfig, QuickScene, WorkspaceSectionId } from "../projects/types";
 import { isTemporalLayer } from "../projects/layerVisibility";
 import { TemporalSelector } from "./TemporalSelector";
 import "./LayerPanel.css";
@@ -20,15 +20,21 @@ interface Props {
   onApplyScene?: (scene: QuickScene) => void;
 }
 
-export function getWorkspaceSections(layers: ProjectLayerConfig[]) {
+export function getWorkspaceSections(layers: ProjectLayerConfig[], order: WorkspaceSectionId[] = []) {
   const group = (layer: ProjectLayerConfig) => layer.group ?? (layer.kind === "basemap" ? "basemap" : layer.source.format === "3d-tiles" ? "model" : layer.source.format === "geojson" ? "vector" : "raster");
-  return [
+  const sections: { id: WorkspaceSectionId; title: string; layers: ProjectLayerConfig[] }[] = [
     { id: "basemap", title: "Mapa base", layers: layers.filter(layer => group(layer) === "basemap") },
     { id: "raster", title: "Rasters", layers: layers.filter(layer => group(layer) === "raster") },
     { id: "vector", title: "Vetores", layers: layers.filter(layer => group(layer) === "vector") },
     { id: "model", title: "Modelo 3D", layers: layers.filter(layer => group(layer) === "model") },
     { id: "macro", title: "Análise Macro", layers: layers.filter(layer => group(layer) === "macro") },
   ];
+  // Listed sections first (duplicates ignored), then the rest in default order.
+  const rank = (id: WorkspaceSectionId) => {
+    const index = order.indexOf(id);
+    return index === -1 ? order.length + sections.findIndex(section => section.id === id) : index;
+  };
+  return sections.sort((a, b) => rank(a.id) - rank(b.id));
 }
 
 // Searching and collapsing are presentation only: neither one toggles a layer,
@@ -44,13 +50,17 @@ function sameLayerSet(current: Set<string>, expected: string[]) {
 export function LayerPanel({ project, statuses, visible, rasterOpacities, onOpacityChange, onToggle, onClose, scenes, onApplyScene, comparing, onCompare, onExitComparison }: Props) {
   const [modelHint, setModelHint] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  // Sections without an active layer start collapsed. Later layer toggles must
-  // not reopen or close a section behind the user's back, so this initializes once.
-  const [openSections, setOpenSections] = useState(() => new Set(
-    getWorkspaceSections(project.layers)
+  const showSearch = project.panel?.showLayerSearch ?? true;
+  const sectionOrder = project.panel?.sectionOrder;
+  // Sections without an active layer start collapsed, unless listed in
+  // panel.expandedSections. Later layer toggles must not reopen or close a
+  // section behind the user's back, so this initializes once.
+  const [openSections, setOpenSections] = useState(() => new Set<WorkspaceSectionId>([
+    ...getWorkspaceSections(project.layers)
       .filter(section => section.layers.some(layer => visible.has(layer.id)))
       .map(section => section.id),
-  ));
+    ...(project.panel?.expandedSections ?? []),
+  ]));
   const searchId = useId();
 
   useEffect(() => {
@@ -59,12 +69,12 @@ export function LayerPanel({ project, statuses, visible, rasterOpacities, onOpac
     return () => window.clearTimeout(timer);
   }, [modelHint]);
 
-  const query = normalize(search);
-  const entries = getWorkspaceSections(project.layers)
+  const query = showSearch ? normalize(search) : "";
+  const entries = getWorkspaceSections(project.layers, sectionOrder)
     .map(section => ({ section, layers: query ? section.layers.filter(layer => normalize(`${layer.name} ${layer.description} ${layer.subsection ?? ""}`).includes(query)) : section.layers }))
     .filter(entry => entry.layers.length > 0);
 
-  function toggleSection(id: string) {
+  function toggleSection(id: WorkspaceSectionId) {
     setOpenSections(current => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -98,7 +108,7 @@ export function LayerPanel({ project, statuses, visible, rasterOpacities, onOpac
             ))}
           </div>
         </section>}
-      <div className="workspace-search">
+      {showSearch && <div className="workspace-search">
         <label className="workspace-search-label" htmlFor={searchId}>Buscar camada</label>
         <input
           id={searchId}
@@ -108,7 +118,7 @@ export function LayerPanel({ project, statuses, visible, rasterOpacities, onOpac
           value={search}
           onChange={event => setSearch(event.currentTarget.value)}
         />
-      </div>
+      </div>}
       {entries.length === 0 && <p className="workspace-empty" role="status">Nenhuma camada encontrada.</p>}
       {entries.map(({ section, layers }) => {
         const activeCount = section.layers.filter(layer => visible.has(layer.id)).length;

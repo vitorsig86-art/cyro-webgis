@@ -127,9 +127,24 @@ assert.equal(sceneButton.props["aria-pressed"], true);
 sceneButton.props.onClick();
 assert.equal(applied, scenes[0]);
 assert.match(renderToStaticMarkup(withScenes), />0\/2</, "Raster counter is active/total of the whole group");
+// panel options: defaults keep search and order; configured values change only presentation.
+const sectionIds = (tree) => elements(tree).filter(({ node }) => node.type === "section" && node.props.className === "workspace-section").map(({ node }) => node.key);
+const openIds = (tree) => elements(tree).filter(({ node }) => node.type === "button" && node.props.className === "workspace-section-toggle" && node.props["aria-expanded"]).map(({ node }) => node.props["aria-controls"].replace("workspace-list-", ""));
+const defaultVisible = new Set(["basemap"]);
+const panelProps = { visible: defaultVisible, statuses: {}, rasterOpacities: {}, onToggle() {}, onOpacityChange() {}, onClose() {} };
+const defaultPanel = LayerPanel({ project, ...panelProps });
+assert.match(renderToStaticMarkup(defaultPanel), /Buscar camada/);
+assert.equal(JSON.stringify(sectionIds(defaultPanel)), JSON.stringify(["basemap", "raster", "vector", "model"]));
+assert.equal(JSON.stringify(openIds(defaultPanel)), JSON.stringify(["basemap"]));
+const configured = LayerPanel({ project: { ...project, panel: { showLayerSearch: false, sectionOrder: ["basemap", "model", "model", "raster"], expandedSections: ["model"] } }, ...panelProps });
+assert.doesNotMatch(renderToStaticMarkup(configured), /Buscar camada|workspace-search/);
+assert.equal(JSON.stringify(sectionIds(configured)), JSON.stringify(["basemap", "model", "raster", "vector"]), "Unlisted sections follow in default order; duplicates ignored");
+assert.equal(JSON.stringify(openIds(configured)), JSON.stringify(["basemap", "model"]));
+assert.equal(JSON.stringify([...defaultVisible]), JSON.stringify(["basemap"]), "Expanding a section does not turn its layers on");
+assert.equal(JSON.stringify(getWorkspaceSections(project.layers, ["macro", "vector"]).map((section) => section.id)), JSON.stringify(["macro", "vector", "basemap", "raster", "model"]));
 const { configuredVisibility } = load("src/projects/layerVisibility.ts");
 const exclusive = [
   { ...project.layers[1], exclusiveGroup: "x" }, { ...project.layers[2], exclusiveGroup: "x" }, project.layers[0],
 ];
 assert.equal(JSON.stringify([...configuredVisibility(exclusive, [exclusive[0].id, exclusive[1].id, "basemap", "unknown"])]), JSON.stringify([exclusive[1].id, "basemap"]));
-console.log("Workspace passed: Portuguese sections, checkbox callbacks, independent sliders, 3D card, reusable image legends, hidden legends, gradient compatibility, hidden empty sections, scenes and exclusive groups.");
+console.log("Workspace passed: Portuguese sections, checkbox callbacks, independent sliders, 3D card, reusable image legends, hidden legends, gradient compatibility, hidden empty sections, scenes, exclusive groups and panel options (search, section order, expanded sections).");
