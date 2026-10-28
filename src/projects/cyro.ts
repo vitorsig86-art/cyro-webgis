@@ -26,6 +26,37 @@ const orto: ProjectConfig["layers"][number] = {
   },
 };
 
+// Derivados do relevo, gerados por scripts/raster-from-xml.cjs (EPSG:900913, TMS).
+// Legenda desenhada no próprio raster. Mesmo exclusiveGroup: um ligado por vez
+// sobre o orto. bounds = tiles inteiros do BoundingBox, não o contorno real.
+const R2 = "https://pub-97f2474708304c9b9448b3766da91a46.r2.dev";
+type Layer = ProjectConfig["layers"][number];
+const derivado = (id: string, name: string, kind: Layer["kind"], folder: string, bounds: [number, number, number, number], minimumLevel: number, maximumLevel: number): Layer => ({
+  id,
+  name,
+  description: "",
+  kind,
+  defaultVisible: false,
+  legendMode: "embedded",
+  exclusiveGroup: "derivados",
+  source: {
+    format: "tms",
+    url: `${R2}/${folder}/{z}/{x}/{reverseY}.png`,
+    credit: "Cardeal Map",
+    bounds,
+    minimumLevel,
+    maximumLevel,
+    tileWidth: 256,
+    tileHeight: 256,
+  },
+});
+const relevoBounds: [number, number, number, number] = [-45, -21.9430456, -44.2968749, -21.2893743];
+const mdt = derivado("mdt", "Modelo Digital de Terreno", "dtm", "mdt", relevoBounds, 9, 18);
+const mds = derivado("mds", "Modelo Digital de Superfície", "dsm", "mds", relevoBounds, 9, 18);
+const declividade = derivado("declividade", "Declividade", "slope", "decli", relevoBounds, 9, 18);
+// O tipo não tem "aspect"; "solar-orientation" é o kind do template para vertentes.
+const aspecto = derivado("aspecto", "Orientação de Vertentes", "solar-orientation", "aspect", [-45, -21.9430456, -44.6484374, -21.6165793], 10, 19);
+
 // Metashape. Altura: ver comentário de heightOffsetMeters.
 // Mesmo token do Bing, por isso VITE_CESIUM_ION_TOKEN.
 const modelo: ProjectConfig["layers"][number] = {
@@ -72,7 +103,7 @@ export const project: ProjectConfig = {
   // Capture a vista final (cameraCapture). Ângulos em graus; altura em metros sobre o elipsoide.
   initialCamera: { longitude: -44.8698617, latitude: -21.9182845, height: 1694.0, heading: 125.73, pitch: -46.46, roll: 0.00 },
   // Ordem = empilhamento: o último item fica por cima.
-  layers: [basemap, orto, modelo],
+  layers: [basemap, orto, mdt, mds, declividade, aspecto, modelo],
   scenes: [],
   diagnostic: { steps: [] },
   // Ferramentas só aparecem em npm run dev; desligue cameraCapture ao finalizar.
