@@ -26,6 +26,19 @@ const orto: ProjectConfig["layers"][number] = {
   },
 };
 
+// Metashape. Altitudes de origem ortométricas (SIRGAS 2000, MAPGEO): o modelo
+// fica abaixo do World Terrain pela ondulação geoidal N. heightOffsetMeters
+// final = +N do MAPGEO no local (aguardando valor); não ajustar no olho.
+// Mesmo token do Bing, por isso VITE_CESIUM_ION_TOKEN.
+const modelo: ProjectConfig["layers"][number] = {
+  id: "modelo",
+  name: "Modelo 3D",
+  description: "",
+  kind: "3d-tiles",
+  defaultVisible: false,
+  source: { format: "3d-tiles", source: "ion", assetId: 5140405, tokenEnv: "VITE_CESIUM_ION_TOKEN" },
+};
+
 export const project: ProjectConfig = {
   ...templateProject,
   id: "cyro",
@@ -40,9 +53,10 @@ export const project: ProjectConfig = {
   // Capture a vista final (cameraCapture). Ângulos em graus; altura em metros sobre o elipsoide.
   initialCamera: { longitude: -44.8698617, latitude: -21.9182845, height: 1694.0, heading: 125.73, pitch: -46.46, roll: 0.00 },
   // Ordem = empilhamento: o último item fica por cima.
-  layers: [basemap, orto],
+  layers: [basemap, orto, modelo],
   scenes: [],
   diagnostic: { steps: [] },
   // Ferramentas só aparecem em npm run dev; desligue cameraCapture ao finalizar.
-  developmentTools: { modelAlignment: false, cropAuthoring: false, cameraCapture: true },
+  // modelAlignment ligado só para medir a diferença do modelo; desligar depois.
+  developmentTools: { modelAlignment: true, cropAuthoring: false, cameraCapture: true },
 };
