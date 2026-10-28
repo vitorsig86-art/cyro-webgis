@@ -38,8 +38,7 @@ export const project: ProjectConfig = {
   // bounds: [W, S, E, N],
   // Opcional: navigation: { marginRatio: 0.25, maximumZoomDistance: 5000 },
   // Capture a vista final (cameraCapture). Ângulos em graus; altura em metros sobre o elipsoide.
-  // Provisória: centro do tile do orto, até a captura da vista final.
-  initialCamera: { longitude: -44.9121, latitude: -21.8615, height: 25000, heading: 0, pitch: -90, roll: 0 },
+  initialCamera: { longitude: -44.8698617, latitude: -21.9182845, height: 1694.0, heading: 125.73, pitch: -46.46, roll: 0.00 },
   // Ordem = empilhamento: o último item fica por cima.
   layers: [basemap, orto],
   scenes: [],
